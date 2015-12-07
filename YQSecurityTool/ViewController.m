@@ -18,10 +18,13 @@
     [super viewDidLoad];
 
     
-    NSString * originalString = @"originalString";
-    NSString * key = @"key";
+    NSString * originalString = @"this is my fucking origin";
+    NSString * key = @"my_key_my_key_my";
     
-    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key];
+//    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key];
+    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key andAESBit:AESBit128];
+    
+    
     
     NSString *decryptionString = [YQSecurityTool decryptAESDataString:encryptionString app_key:key];
     NSLog(@"加密前 = %@  ，加密后 = %@  ，解密后 = %@",originalString,encryptionString,decryptionString);
