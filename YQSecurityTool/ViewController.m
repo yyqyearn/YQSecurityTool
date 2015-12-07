@@ -18,21 +18,17 @@
     [super viewDidLoad];
 
     
-    NSString * originalString = @"this is my fucking origin";
-    NSString * key = @"my_key_my_key_my";
+    NSString * originalString = @"1234567890123456";
+    NSString * key = @"haha";
+    AESAlg alg = AESAlgEBC;
+    AESBit bit = AESBit128;
+    NSString * gIv = @"heyhey";
     
-//    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key];
-    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key andAESBit:AESBit128];
+    NSString *encryptionString = [YQSecurityTool encryptAESDataWithString:originalString key:key algorithm:alg AESBit:bit gIv:gIv];
     
-    
-    
-    NSString *decryptionString = [YQSecurityTool decryptAESDataString:encryptionString app_key:key];
-    NSLog(@"加密前 = %@  ，加密后 = %@  ，解密后 = %@",originalString,encryptionString,decryptionString);
+    NSString *decryptionString = [YQSecurityTool decryptAESDataWithString:encryptionString key:key algorithm:alg AESBit:bit gIv:gIv];
+    NSLog(@"\n加密前 = %@\n加密后 = %@\n解密后 = %@\nkey = %@\ngIv = %@",originalString,encryptionString,decryptionString,key,gIv);
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
 
 @end
