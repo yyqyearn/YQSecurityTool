@@ -2,11 +2,12 @@
 一个简单的AES128加密工具
 
 引入头文件
-#import "YQSecurityTool.h"
+import "YQSecurityTool.h"
 
 
 
 事务方法：
+
     NSString * originalString = @"originalString";
     NSString * key = @"key";
     
