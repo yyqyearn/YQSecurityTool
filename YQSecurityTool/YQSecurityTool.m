@@ -8,15 +8,48 @@
 
 #import "YQSecurityTool.h"
 //#import "NSData+YQAES.h"
-#define gIv @"xxxxxxxxxxx" //可以自行定义16位
+//#define gIv @"xxxxxxxxxxxxxxxx" //为与安卓互通，选择kCCOptionECBMode时无效
 
 @implementation YQSecurityTool
 
 #pragma mark - 公共方法
 
++ (NSString*)encryptAESDataWithString:(NSString*)string
+                                  key:(NSString *)key
+                            algorithm:(AESAlg)algorithm
+                               AESBit:(AESBit)aesBit
+                                  gIv:(NSString*)gIv
+{
+    //将NSString转化为NSData
+    NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
+    //使用密码对nsdata进行加密
+    NSData *encryptedData = [YQSecurityTool AESEncryptWithData:data key:key algorithm:algorithm AESBit:aesBit gIv:gIv];
+    
+    return [encryptedData base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+    
+}
+
++ (NSString*)decryptAESDataWithString:(NSString*)string
+                                  key:(NSString *)key
+                            algorithm:(AESAlg)algorithm
+                               AESBit:(AESBit)aesBit
+                                  gIv:(NSString*)gIv
+
+{
+    //将NSString转化为NSData
+    NSData *data = [[NSData alloc]initWithBase64EncodedString:string options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    //使用密码对data进行解密
+    NSData *decryData = [YQSecurityTool AESDecryptWithData:data key:key algorithm:algorithm AESBit:aesBit gIv:gIv];
+    //将解了密码的nsdata转化为nsstring
+    NSString *str = [[NSString alloc] initWithData:decryData encoding:NSUTF8StringEncoding];
+    return str;
+
+}
+
+
 + (NSString*)encryptAESDataString:(NSString*)string app_key:(NSString*)key
 {
-    //将nsstring转化为nsdata
+    //将NSString转化为NSData
     NSData *data = [string dataUsingEncoding:NSUTF8StringEncoding];
     //使用密码对nsdata进行加密
     NSData *encryptedData = [YQSecurityTool AES128EncryptWithData:data key:key];
@@ -43,25 +76,57 @@
 
 #pragma mark - 私有方法
 
-+ (NSData *)AES128EncryptWithData:(NSData*)data key:(NSString *)key//加密
++ (NSData *)AESEncryptWithData:(NSData*)data
+                           key:(NSString *)key
+                     algorithm:(AESAlg)algorithm
+                        AESBit:(AESBit)aesBit
+                           gIv:(NSString*)gIv
 {
-    char keyPtr[kCCKeySizeAES128+1];
+    
+    NSInteger kCCKeySize = 0;
+    switch (aesBit) {
+        case AESBit128:
+            kCCKeySize = kCCKeySizeAES128;
+            break;
+        case AESBit256:
+            kCCKeySize = kCCKeySizeAES256;
+            break;
+        default:
+            kCCKeySize = kCCKeySizeAES128;//默认
+            break;
+    }
+    CCOptions aCcOptions;
+    switch (algorithm) {
+        case AESAlgCBC:
+            aCcOptions = kCCOptionPKCS7Padding;
+            break;
+        case AESAlgEBC:
+            aCcOptions = kCCOptionPKCS7Padding|kCCOptionECBMode;
+            break;
+        default:
+            aCcOptions = kCCOptionPKCS7Padding; //默认CBC
+            break;
+    }
+
+    char keyPtr[kCCKeySize+1];
     bzero(keyPtr, sizeof(keyPtr));
     [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
     
-    char ivPtr[kCCKeySizeAES128+1];
+    char ivPtr[kCCKeySize+1];
     memset(ivPtr, 0, sizeof(ivPtr));
     [gIv getCString:ivPtr maxLength:sizeof(ivPtr) encoding:NSUTF8StringEncoding];
     
     NSUInteger dataLength = [data length];
+    
     size_t bufferSize = dataLength + kCCBlockSizeAES128;
     void *buffer = malloc(bufferSize);
     size_t numBytesEncrypted = 0;
+    
     CCCryptorStatus cryptStatus = CCCrypt(kCCEncrypt,
                                           kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding,
+                                          aCcOptions,
                                           keyPtr,
-                                          kCCBlockSizeAES128,
+                                          kCCKeySize,
                                           ivPtr,
                                           [data bytes],
                                           dataLength,
@@ -76,13 +141,43 @@
 }
 
 
-+ (NSData *)AES128DecryptWithData:(NSData*)data key:(NSString *)key//解密
++ (NSData *)AESDecryptWithData:(NSData*)data
+                           key:(NSString *)key
+                     algorithm:(AESAlg)algorithm
+                        AESBit:(AESBit)aesBit
+                           gIv:(NSString*)gIv
 {
-    char keyPtr[kCCKeySizeAES128+1];
+    NSInteger kCCKeySize = 0;
+    switch (aesBit) {
+        case AESBit128:
+            kCCKeySize = kCCKeySizeAES128;
+            break;
+        case AESBit256:
+            kCCKeySize = kCCKeySizeAES256;
+            break;
+        default:
+            kCCKeySize = kCCKeySizeAES128;//默认
+            break;
+    }
+    
+    CCOptions aCcOptions;
+    switch (algorithm) {
+        case AESAlgCBC:
+            aCcOptions = kCCOptionPKCS7Padding;
+            break;
+        case AESAlgEBC:
+            aCcOptions = kCCOptionPKCS7Padding|kCCOptionECBMode;
+            break;
+        default:
+            aCcOptions = kCCOptionPKCS7Padding; //默认CBC
+            break;
+    }
+    
+    char keyPtr[kCCKeySize+1];
     bzero(keyPtr, sizeof(keyPtr));
     [key getCString:keyPtr maxLength:sizeof(keyPtr) encoding:NSUTF8StringEncoding];
     
-    char ivPtr[kCCKeySizeAES128+1];
+    char ivPtr[kCCKeySize+1];
     memset(ivPtr, 0, sizeof(ivPtr));
     [gIv getCString:ivPtr maxLength:sizeof(ivPtr) encoding:NSUTF8StringEncoding];
     
@@ -92,9 +187,9 @@
     size_t numBytesDecrypted = 0;
     CCCryptorStatus cryptStatus = CCCrypt(kCCDecrypt,
                                           kCCAlgorithmAES128,
-                                          kCCOptionPKCS7Padding,
+                                          aCcOptions,
                                           keyPtr,
-                                          kCCBlockSizeAES128,
+                                          kCCKeySize,
                                           ivPtr,
                                           [data bytes],
                                           dataLength,
@@ -106,6 +201,32 @@
     }
     free(buffer);
     return nil;
+}
+
+
+
+
+
+
++ (NSData *)AES128EncryptWithData:(NSData*)data key:(NSString *)key//加密
+{
+    return [YQSecurityTool AESEncryptWithData:data key:key algorithm:AESAlgCBC AESBit:AESBit128 gIv:nil];
+}
+
+
++ (NSData *)AES128DecryptWithData:(NSData*)data key:(NSString *)key//解密
+{
+    return [YQSecurityTool AESDecryptWithData:data key:key algorithm:AESAlgCBC AESBit:AESBit128 gIv:nil];
+}
+
+- (NSData *)AES256EncryptWithData:(NSData*)data key:(NSString *)key
+{
+    return [YQSecurityTool AESEncryptWithData:data key:key algorithm:AESAlgCBC AESBit:AESBit256 gIv:nil];
+}
+
+- (NSData *)AES256DecryptWithData:(NSData*)data key:(NSString *)key
+{
+    return [YQSecurityTool AESEncryptWithData:data key:key algorithm:AESAlgCBC AESBit:AESBit256 gIv:nil];
 }
 
 

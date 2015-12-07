@@ -502,6 +502,7 @@
 				5B2BCDA31C15440F0042116C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5B2BCDA41C15440F0042116C /* Build configuration list for PBXNativeTarget "YQSecurityToolTests" */ = {
 			isa = XCConfigurationList;
@@ -510,6 +511,7 @@
 				5B2BCDA61C15440F0042116C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5B2BCDA71C15440F0042116C /* Build configuration list for PBXNativeTarget "YQSecurityToolUITests" */ = {
 			isa = XCConfigurationList;
@@ -518,6 +520,7 @@
 				5B2BCDA91C15440F0042116C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
