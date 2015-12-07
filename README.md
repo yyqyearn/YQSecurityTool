@@ -1,5 +1,7 @@
 # YQSecurityTool
-一个简单的AES128加密工具
+一个简单的AES加密工具
+提供128/256位加密
+提供ECB/CBC算法加密
 
 引入头文件
 import "YQSecurityTool.h"
@@ -8,13 +10,31 @@ import "YQSecurityTool.h"
 
 事务方法：
 
-    NSString * originalString = @"originalString";
-    NSString * key = @"key";
+    NSString * originalString = @"1234567890123456";
+    NSString * key = @"haha";
+    AESAlg alg = AESAlgEBC;
+    AESBit bit = AESBit128;
+    NSString * gIv = @"heyhey";
     
-    NSString *encryptionString = [YQSecurityTool encryptAESDataString:originalString app_key:key];
-
-    NSString *decryptionString = [YQSecurityTool decryptAESDataString:encryptionString app_key:key];
-
-    NSLog(@"加密前 = %@  ，加密后 = %@  ，解密后 = %@",originalString,encryptionString,decryptionString);
+    NSString *encryptionString = [YQSecurityTool encryptAESDataWithString:originalString
+                                                                      key:key
+                                                                algorithm:alg
+                                                                   AESBit:bit
+                                                                      gIv:gIv
+                                  ];
+    
+    NSString *decryptionString = [YQSecurityTool decryptAESDataWithString:encryptionString
+                                                                      key:key
+                                                                algorithm:alg
+                                                                   AESBit:bit
+                                                                      gIv:gIv
+                                  ];
+    NSLog(@"\n加密前 = %@\n加密后 = %@\n解密后 = %@\nkey = %@\ngIv = %@",
+          originalString,
+          encryptionString,
+          decryptionString,
+          key,
+          gIv
+          );
 
 
